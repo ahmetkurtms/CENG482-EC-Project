@@ -1,7 +1,9 @@
 """
 ga_solver.py - Genetic Algorithm for Exam Timetabling
 ------------------------------------------------------
-Uses permutation encoding + greedy decoder + proximity cost to evolve timetables.
+This module implements a genetic algorithm to optimize exam scheduling.
+It includes population initialization, selection, crossover, mutation,
+and evaluation functions.
 """
 
 import random
@@ -23,8 +25,8 @@ def initialize_population(exam_ids: List[int],
 
 
 def tournament_selection(evaluated: List[Dict[str, Any]],
-                         tournament_size: int,
-                         rng: random.Random) -> List[int]:
+                        tournament_size: int,
+                        rng: random.Random) -> List[int]:
     contenders = rng.sample(
         evaluated, k=min(tournament_size, len(evaluated))
     )
@@ -52,8 +54,38 @@ def order_crossover(parent1: List[int],
 
 
 def swap_mutation(chromosome: List[int], rng: random.Random) -> None:
+    # Swaps two genes in the chromosome
     a, b = rng.sample(range(len(chromosome)), 2)
     chromosome[a], chromosome[b] = chromosome[b], chromosome[a]
+
+
+def insert_mutation(chromosome: List[int], rng: random.Random) -> None:
+    # Moves one gene to another position
+    i, j = rng.sample(range(len(chromosome)), 2)
+    elem = chromosome.pop(i)
+    chromosome.insert(j, elem)
+
+
+def inversion_mutation(chromosome: List[int], rng: random.Random) -> None:
+    # Reverses a segment of the chromosome
+    i, j = sorted(rng.sample(range(len(chromosome)), 2))
+    chromosome[i:j+1] = chromosome[i:j+1][::-1]
+
+
+def scramble_mutation(chromosome: List[int], rng: random.Random) -> None:
+    # Shuffles a segment of the chromosome
+    i, j = sorted(rng.sample(range(len(chromosome)), 2))
+    segment = chromosome[i:j+1]
+    rng.shuffle(segment)
+    chromosome[i:j+1] = segment
+
+
+MUTATION_FUNCS = {
+    'swap': swap_mutation,
+    'insert': insert_mutation,
+    'inversion': inversion_mutation,
+    'scramble': scramble_mutation
+}
 
 
 def evaluate_population(population: List[List[int]],
@@ -77,17 +109,21 @@ def evaluate_population(population: List[List[int]],
 
 
 def run_ga(data: Dict[str, Any],
-           population_size: int = 80,
-           generations: int = 150,
-           crossover_rate: float = 0.9,
-           mutation_rate: float = 0.2,
-           tournament_size: int = 3,
-           elitism: int = 2,
-           max_slots: int = 40,
-           hard_penalty: float = 1_000_000.0,
-           random_seed: int = None,
-           verbose: bool = True) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+          population_size: int = 80,
+          generations: int = 150,
+          crossover_rate: float = 0.9,
+          mutation_rate: float = 0.2,
+          tournament_size: int = 3,
+          elitism: int = 2,
+          max_slots: int = 40,
+          hard_penalty: float = 1_000_000.0,
+          mutation_type: str = 'swap',
+          random_seed: int = None,
+          verbose: bool = True) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     rng = random.Random(random_seed)
+
+    # Select mutation function (default is swap)
+    mutate = MUTATION_FUNCS.get(mutation_type, swap_mutation)
 
     population = initialize_population(
         data['exam_ids'], population_size, rng
@@ -144,9 +180,9 @@ def run_ga(data: Dict[str, Any],
                 child1, child2 = parent1[:], parent2[:]
 
             if rng.random() < mutation_rate:
-                swap_mutation(child1, rng)
+                mutate(child1, rng)
             if rng.random() < mutation_rate:
-                swap_mutation(child2, rng)
+                mutate(child2, rng)
 
             next_population.append(child1)
             if len(next_population) < population_size:
