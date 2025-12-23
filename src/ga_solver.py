@@ -83,7 +83,7 @@ def run_ga(data: Dict[str, Any],
            mutation_rate: float = 0.2,
            tournament_size: int = 3,
            elitism: int = 2,
-           max_slots: int = 35,
+           max_slots: int = 40,
            hard_penalty: float = 1_000_000.0,
            random_seed: int = None,
            verbose: bool = True) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         mutation_rate=0.2,
         tournament_size=3,
         elitism=2,
-        max_slots=35,
+        max_slots=40,
         hard_penalty=1_000_000.0,
         random_seed=42,
         verbose=True
