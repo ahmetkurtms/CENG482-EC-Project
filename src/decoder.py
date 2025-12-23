@@ -4,9 +4,7 @@ decoder.py - Permutation to Slot Assignment Decoder
 This module implements a greedy decoder that converts a given permutation of exam IDs
 into a slot assignment while respecting hard constraints defined by a conflict matrix.
 
-NOTE: max_slots parameter and force_assign() function are currently unused.
-      If a slot limit is required in the future, set max_slots to desired value.
-      Current behavior: max_slots=None means unlimited slots (always feasible solution).
+Set max_slots to cap available timeslots; max_slots=None keeps the schedule unconstrained.
 """
 
 import numpy as np
